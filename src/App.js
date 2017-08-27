@@ -23,63 +23,25 @@ class BooksApp extends Component {
     })
   }
 
-  moveBook = (bookToBeMoved, toShelf) => {
-    const { currentlyReading, wantToRead, read } = this.state;
-
+  moveBook = (book, toShelf) => {
     // Each time a book is moved, run update function to get new books
-    BooksAPI.update(bookToBeMoved, toShelf).then((books) => {
+    BooksAPI.update(book, toShelf).then((books) => {
+      book.shelf = toShelf
+      this.setState(prevState => ({
+        currentlyReading: prevState.currentlyReading.filter(prevBook => prevBook.id !== book.id),
+        wantToRead: prevState.wantToRead.filter(prevBook => prevBook.id !== book.id),
+        read: prevState.read.filter(prevBook => prevBook.id !== book.id)
+      }))
 
-      // Compare each previous state shelf with the new shelf by it's id:
-      // Remove books that is not on the new shelf.
-      // Add books by using get method from BooksAPI to get new books and add them to the shelf.
-
-      // Currently Reading Shelf
-      if (currentlyReading.length > books.currentlyReading.length) {
-        this.setState((prevState) => ({
-            currentlyReading: prevState.currentlyReading.filter((book) => {
-              return books.currentlyReading.indexOf(book.id) !== -1
-            })
-        }))
-      } else if (currentlyReading.length < books.currentlyReading.length) {
-        let id = books.currentlyReading[books.currentlyReading.length-1];
-        BooksAPI.get(id).then((book) => {
-          this.setState({
-            currentlyReading: [...currentlyReading, book]
-          })
-        })
-      }
-
-      // Want to read Shelf
-      if (wantToRead.length > books.wantToRead.length) {
-        this.setState((prevState) => ({
-          wantToRead: prevState.wantToRead.filter((book) => {
-            return books.wantToRead.indexOf(book.id) !== -1
-          })
-        }))
-      } else if (wantToRead.length < books.wantToRead.length) {
-        let id = books.wantToRead[books.wantToRead.length-1];
-        BooksAPI.get(id).then((book) => {
-          this.setState({
-            wantToRead: [...wantToRead, book]
-          })
-        })
-      }
-
-      // Read Shelf
-      if (read.length > books.read.length) {
-        this.setState((prevState) => ({
-          read: prevState.read.filter((book) => {
-            return books.read.indexOf(book.id) !== -1
-          })
-        }))
-      } else if (read.length < books.read.length) {
-        let id = books.read[books.read.length-1];
-        BooksAPI.get(id).then((book) => {
-          this.setState({
-            read: [...read, book]
-          })
-        })
-      }
+      toShelf === 'currentlyReading' && (
+        this.setState(prevState => ({ currentlyReading: prevState[toShelf].concat( [book] )}))
+      )
+      toShelf === 'wantToRead' && (
+        this.setState(prevState => ({ wantToRead: prevState[toShelf].concat( [book] )}))
+      )
+      toShelf === 'read' && (
+        this.setState(prevState => ({ read: prevState[toShelf].concat( [book] )}))
+      )
     })
   }
 

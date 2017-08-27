@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import * as BooksAPI from './utils/BooksAPI'
 import PropTypes from 'prop-types'
+import Book from './Book'
 
 class SearchPage extends Component {
 	static propTypes = {
@@ -24,33 +25,34 @@ class SearchPage extends Component {
 
 	// Run search method on BooksAPI to find books matching query string, then add to searchedBooks state
 	searchBook = (query) => {
-		BooksAPI.search(query).then((searched) => {
-			this.setState({
-				searchedBooks: searched,
-				errorMessage: ''
+		if (query.length > 1) {
+			BooksAPI.search(query).then((searched) => {
+				this.setState({
+					searchedBooks: searched,
+					errorMessage: ''
+				})
+				// catch thrown errors from failed query searches
+			}).catch(() => {
+				this.setState({
+					searchedBooks: [],
+					errorMessage: 'No Books Found'
+				})
 			})
-		}).catch(() => {
-			this.setState({
-				searchedBooks: [],
-				errorMessage: 'No Books Found'
-			})
-			console.log('Could not find book based on search')
-		})
+		}
 	}
 
-	render() {
-		const { currentlyReading, wantToRead, read, moveBook } = this.props;
-		const { query, searchedBooks, errorMessage } = this.state;
-
+	checkValue = (book) => {
+		const { currentlyReading, wantToRead, read } = this.props;
 		const allBooks = currentlyReading.concat(wantToRead, read);
 		const allBooksId = allBooks.map((book) => {
 			return book.id
 		})
+		return allBooksId.indexOf(book.id) > -1 ? allBooks[allBooksId.indexOf(book.id)].shelf : 'none'
+	}
 
-		// check if book exists on shelves
-		const checkValue = (book) => {
-			return allBooksId.indexOf(book.id) > -1 ? allBooks[allBooksId.indexOf(book.id)].shelf : 'none'
-		}
+	render() {
+		const { moveBook } = this.props;
+		const { query, searchedBooks, errorMessage } = this.state;
 
 		return (
 		<div className="search-books">
@@ -69,27 +71,13 @@ class SearchPage extends Component {
 			<div className="search-books-results">
 				<ol className="books-grid">
 				{errorMessage ? <div>{errorMessage}</div> :
-					searchedBooks.map((book, index) => {
-						return <li key={index}>
-									<div className="book">
-									  <div className="book-top">
-									    <div className="book-cover" style={{ width: 128, height: 193,
-									    	backgroundImage: `url("${book.imageLinks.thumbnail}")` }}></div>
-									    <div className="book-shelf-changer">
-									      <select onChange={ (e) => moveBook(book, e.target.value) } value={checkValue(book)}>
-									        <option value="none" disabled>Move to...</option>
-									        <option value="currentlyReading">Currently Reading</option>
-									        <option value="wantToRead">Want to Read</option>
-									        <option value="read">Read</option>
-									        <option value="none">None</option>
-									      </select>
-									    </div>
-									  </div>
-									  <div className="book-title">{book.title}</div>
-									  <div className="book-authors">{book.authors}</div>
-									</div>
-								</li>
-						})}
+						searchedBooks.map((book, index) =>
+			        		<Book
+				        		book={book}
+				        		key={index}
+				        		moveBook={moveBook}
+				        		shelf={this.checkValue(book)}
+				        	/>)}
 					</ol>
 				</div>
 			</div>
