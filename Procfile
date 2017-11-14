@@ -1,1 +1,1 @@
-web: npm run start-static
+web: bin/boot
