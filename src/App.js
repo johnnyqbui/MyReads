@@ -26,11 +26,10 @@ class BooksApp extends Component {
   moveBook = (book, toShelf) => {
     // Each time a book is moved, run update function to get new books
     BooksAPI.update(book, toShelf).then((books) => {
-      book.shelf = toShelf
       this.setState(prevState => ({
-        currentlyReading: prevState.currentlyReading.filter(prevBook => prevBook.id !== book.id),
-        wantToRead: prevState.wantToRead.filter(prevBook => prevBook.id !== book.id),
-        read: prevState.read.filter(prevBook => prevBook.id !== book.id)
+          currentlyReading: prevState.currentlyReading.filter(prevBook => prevBook.id !== book.id),
+          wantToRead: prevState.wantToRead.filter(prevBook => prevBook.id !== book.id),
+          read: prevState.read.filter(prevBook => prevBook.id !== book.id)
       }))
 
       toShelf === 'currentlyReading' && (
